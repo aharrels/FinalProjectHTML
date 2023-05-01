@@ -16,6 +16,7 @@ formatter = logging.Formatter("%(asctime)s:%(levelname)s: %(message)s")
 file_handler = logging.FileHandler("static/faileduser.log")
 file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
+chatbot = chat_bot_api.chatbot()
 
 app = Flask(__name__)
 
@@ -56,7 +57,7 @@ def login():
         language = request.form['language'] #User Selected Language Variable to be Passed to the Prompt
         key = request.form['api-key']  #API KEY Variable
 
-        chat_bot_api.set_language(language)
+        chatbot.set_language(language)
 
         sql = "SELECT * FROM accounts WHERE username = %s and passwords = %s"
         cursor.execute(sql, (username, password,))
@@ -176,10 +177,10 @@ def get_bot_response():
         if (userText == ""):
             userText = "Hello"
 
-        chatbot = chat_bot_api.generateChatResponse(userText, key, index)
-        lastMessage = chatbot[1]
+        response = chatbot.generateChatResponse(userText, key, index)
+        lastMessage = response[1]
 
-        return chatbot
+        return response
 
     else:
         return ["ALERT", "Please login"]
