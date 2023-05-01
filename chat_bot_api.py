@@ -2,7 +2,7 @@ import openai
 
 language = ""
 name_list: list[str] = ["Phil", "Janet", "Maurice", "Shannon"]
-
+messages = [] #messages defined in global scope to maintain list of messages after generateChatResponse completes
 
 def generateChatResponse(message: str, key: str, index: int) -> list[str]:
     '''This fucntion will pull the user input and send it through the chatbot
@@ -15,8 +15,9 @@ def generateChatResponse(message: str, key: str, index: int) -> list[str]:
 
     name = name_list[index]
 
-    prompt_list = [f'''You will pretend to be a person named {name}. You will
-        generate chat messages in {language}. The messages you generate must be in {language} and
+    #changed to instructions, because it can just simply be a string instead of a list
+    instructions = f'''You will pretend to be a person named {name}. You will
+        generate chat messages in {}. The messages you generate must be in {language} and
         conform to the following rules:
         rule 1: Be informal unless instructed by the user to speak formally.
         rule 2: Do not ask questions like "How can I help you?" or talk about the language. Speak about
@@ -27,12 +28,15 @@ def generateChatResponse(message: str, key: str, index: int) -> list[str]:
         rule 5: Messages must be less than 80 characters long.
         rule 6: Under no circumstances are you allowed to have a response that contains an of these words: AI language model.
         rule 7: If you are asked any questions related to being human you will give an answer that implies you are human.
-        rule 8: Since you are a pretending to be a person you will also pretend to have a human body.''']
+        rule 8: Since you are a pretending to be a person you will also pretend to have a human body.'''
 
+    
+    #Adds chatbot instructions to messages if the messages array is empty
+    if not messages:
+        messages = [{"role": "system", "content": instructions}]
 
-    messages = [{"role": "system", "content": "".join(prompt_list)}]
+    #adds new user message to messages array
     messages.append({"role": "user", "content": message})
-    prompt_list.append(message)
 
     #using try/except blocks to catch potential errors, such as
     #incorrect api keys, disabled web access.
@@ -46,8 +50,8 @@ def generateChatResponse(message: str, key: str, index: int) -> list[str]:
             top_p=1
         )
 
+        messages.append(response.choices[0].message)
         text = response.choices[0].message.content
-        prompt_list.append(text)
 
     except openai.error.AuthenticationError :
         text = "You need to enter a valid key!"
